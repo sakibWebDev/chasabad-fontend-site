@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useState, FormEvent, ChangeEvent, useEffect, useRef, useCallback } from 'react';
+import { useState, FormEvent, ChangeEvent, useEffect, useRef } from 'react';
 import { useAppDispatch } from "@/lib/hooks/useAppDispatch";
 import { useAppSelector } from "@/lib/hooks/useAppSelector";
 import { fetchCurrentUser , logoutUser, clearError } from "@/lib/features/auth/authSlice";
@@ -152,7 +152,7 @@ const Navbar: React.FC = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const categoriesRef = useRef<HTMLDivElement>(null);
 
-  // Redux state - Corrected selectors
+  // Redux state
   const { user, loading, isAuthenticated, error } = useAppSelector((state: RootState) => state.auth);
   const cartCount = useAppSelector((state: RootState) => state.cart?.totalQuantity || state.cart?.items?.length || 0);
   const wishlistCount = useAppSelector((state: RootState) => state.wishlist?.totalItems || state.wishlist?.items?.length || 0);
@@ -196,7 +196,7 @@ const Navbar: React.FC = () => {
     setIsHydrated(true);
   }, []);
 
-  // Fetch user on mount - Using correct function name fetchCurrentUser
+  // Fetch user on mount
   useEffect(() => {
     if (isHydrated) {
       dispatch(fetchCurrentUser());
@@ -560,17 +560,6 @@ const Navbar: React.FC = () => {
                           <ChevronRight className="w-3 h-3 ml-auto text-gray-400" />
                         </Link>
                       )}
-                      {(user.role === 'USER' || user.role === 'USER') && (
-                        <Link
-                          href="/dashboard"
-                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <Shield className="w-4 h-4 text-purple-600" />
-                          <span>User Dashboard</span>
-                          <ChevronRight className="w-3 h-3 ml-auto text-gray-400" />
-                        </Link>
-                      )}
                       
                       <Link
                         href="/profile"
@@ -838,7 +827,7 @@ const Navbar: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile Auth Buttons */}
+            {/* Mobile Auth Buttons - FIXED: Added user null check */}
             {!isAuthenticated ? (
               <div className="pt-3 space-y-2">
                 <Link href="/login" onClick={() => setMenuOpen(false)}>
@@ -853,27 +842,30 @@ const Navbar: React.FC = () => {
                 </Link>
               </div>
             ) : (
-              <div className="pt-3 space-y-2">
-                {(user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') && (
-                  <Link
-                    href="/admin"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full font-medium transition"
+              // FIXED: Added user null check here
+              user && (
+                <div className="pt-3 space-y-2">
+                  {(user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full font-medium transition"
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMenuOpen(false);
+                    }}
+                    className="w-full px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full font-medium transition"
                   >
-                    <Shield className="w-4 h-4" />
-                    <span>Admin Panel</span>
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setMenuOpen(false);
-                  }}
-                  className="w-full px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-full font-medium transition"
-                >
-                  লগআউট
-                </button>
-              </div>
+                    লগআউট
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
